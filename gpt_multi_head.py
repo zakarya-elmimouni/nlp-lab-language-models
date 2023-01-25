@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch.nn import functional as F
 
 # hyperparameters
-batch_size = 32 
+batch_size = 32
 block_size = 8
 max_iters = 5000
 eval_interval = 500
@@ -12,7 +12,7 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 eval_iters = 200
 n_embd = 384
 ## Add the number of heads
-n_head = 6
+n_head = 4
 dropout = 0.2
 
 
@@ -104,15 +104,15 @@ class MultiHeadAttention(nn.Module):
         #self.proj = nn.Linear(n_embd, n_embd)
         self.dropout = nn.Dropout(dropout)
         ###
-        
+
     def forward(self, x):
         ## YOUR CODE HERE
-        ## apply each head in self.heads to x and concat the results 
+        ## apply each head in self.heads to x and concat the results
         out = torch.cat([h(x) for h in self.heads], dim=-1)
         out = self.dropout(out)
         #out = self.proj(out)
         return out
-    
+
 class FeedForward(nn.Module):
     """ a simple MLP with RELU """
 
@@ -138,12 +138,12 @@ class Block(nn.Module):
         self.ffwd = FeedForward(n_embd)
         self.ln1 = nn.LayerNorm(n_embd)
         self.ln2 = nn.LayerNorm(n_embd)
-        
+
     def forward(self, x):
         x = self.sa(self.ln1(x))
         x = self.ffwd(self.ln2(x))
         return x
-    
+
 class BigramLanguageModel(nn.Module):
 
     def __init__(self):
@@ -160,7 +160,7 @@ class BigramLanguageModel(nn.Module):
             Block(n_embd, n_head=4),
             nn.LayerNorm(n_embd)
         )
-        
+
         self.lm_head = nn.Linear(n_embd, vocab_size)
 
     def forward(self, idx, targets=None):
@@ -208,7 +208,7 @@ m = model.to(device)
 print(sum(p.numel() for p in m.parameters())/1e6, 'M parameters')
 
 # create a PyTorch optimizer
-optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
+optimizer = torch.optim.AdamW(m.parameters(), lr=learning_rate)
 
 for iter in range(max_iters):
 
@@ -221,7 +221,7 @@ for iter in range(max_iters):
     xb, yb = get_batch('train')
 
     # evaluate the loss
-    logits, loss = model(xb, yb)
+    logits, loss = m(xb, yb)
     optimizer.zero_grad(set_to_none=True)
     loss.backward()
     optimizer.step()

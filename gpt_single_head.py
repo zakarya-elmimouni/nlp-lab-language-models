@@ -67,9 +67,7 @@ class Head(nn.Module):
         super().__init__()
         # YOUR CODE
         # add you key, query and value definitions
-        self.key = nn.Linear(n_embd, head_size, bias=False)
-        self.query = nn.Linear(n_embd, head_size, bias=False)
-        self.value = nn.Linear(n_embd, head_size, bias=False)
+
         ###
         self.register_buffer('tril', torch.tril(torch.ones(block_size, block_size)))
 
@@ -78,13 +76,7 @@ class Head(nn.Module):
     def forward(self, x):
         B,T,C = x.shape
         ## YOUR CODE HERE
-        k = self.key(x)   # (B,T,C)
-        q = self.query(x) # (B,T,C)
-        weight = q @ k.transpose(-2,-1) * C**-0.5 # (B, T, C) @ (B, C, T) -> (B, T, T)
-        weight = weight.masked_fill(self.tril[:T, :T] == 0, float('-inf')) # (B, T, T)
-        weight = F.softmax(weight, dim=-1) # (B, T, T)
-        # perform the weighted aggregation of the values
-        v = self.value(x) # (B,T,C)
+
         ###
         out = weight @ v # (B, T, T) @ (B, T, C) -> (B, T, C)
         return out
@@ -160,7 +152,9 @@ for iter in range(max_iters):
     loss.backward()
     optimizer.step()
 
+
 # generate from the model
-context = torch.zeros((1, 1), dtype=torch.long, device=device)
+prompt = encode(['\n'])
+context = torch.ones((1,1), dtype=torch.long, device=device)*prompt
 print(decode(m.generate(context, max_new_tokens=500)[0].tolist()))
-#open('more.txt', 'w').write(decode(m.generate(context, max_new_tokens=10000)[0].tolist()))
+

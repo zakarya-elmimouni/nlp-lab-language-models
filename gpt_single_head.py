@@ -154,7 +154,6 @@ for iter in range(max_iters):
 
 
 # generate from the model
-prompt = encode(['\n'])
+prompt = torch.tensor(encode(['\n']))
 context = torch.ones((1,1), dtype=torch.long, device=device)*prompt
 print(decode(m.generate(context, max_new_tokens=500)[0].tolist()))
-

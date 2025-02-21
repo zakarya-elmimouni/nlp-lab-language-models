@@ -77,8 +77,30 @@ class Head(nn.Module):
         B,T,C = x.shape
         ## YOUR CODE HERE
 
-        ###
-        out = weight @ v # (B, T, T) @ (B, T, C) -> (B, T, C)
+        head_size = 16
+
+        # define the Key layer  
+        key = nn.Linear(C, head_size, bias=False)
+        # define the Query layer
+        query = nn.Linear(C, head_size, bias=False)
+        # define the Value layer
+        value = nn.Linear(C, head_size, bias=False)
+
+        # apply each layer to the input
+        k = key(x)  # (B, T, head_size)
+        q = query(x)  # (B, T, head_size)
+        v = value(x)  # (B, T, head_size)
+
+        # compute the normalized product between Q and K 
+        weights = q @ k.transpose(-2, -1) / head_size**0.5  # (B, T, head_size) @ (B, head_size, T) -> (B, T, T)
+
+        # apply the mask (lower triangular matrix)
+        weights = weights.masked_fill(tril == 0, float('-inf'))
+
+        # apply the softmax
+        weights = nn.functional.softmax(weights, dim=-1)
+
+        out = weights @ v  # (B, T, T) @ (B, T, head_size) -> (B, T, head_size)
         return out
 
 

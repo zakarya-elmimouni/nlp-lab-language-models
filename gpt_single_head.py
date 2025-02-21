@@ -67,7 +67,11 @@ class Head(nn.Module):
         super().__init__()
         # YOUR CODE
         # add you key, query and value definitions
-
+        # add the tril buffer
+        self.head_size = head_size
+        self.key = nn.Linear(head_size, head_size, bias=False)
+        self.query = nn.Linear(head_size, head_size, bias=False)
+        self.value = nn.Linear(head_size, head_size, bias=False)
         ###
         self.register_buffer('tril', torch.tril(torch.ones(block_size, block_size)))
 
